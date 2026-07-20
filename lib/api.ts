@@ -1,75 +1,73 @@
-import axios, { type AxiosResponse } from "axios";
-import type { Note, NoteTag } from "@/types/note";
+import axios from "axios";
+import type { Note } from "../types/note";
+import { NOTES_PER_PAGE } from "@/lib/constants";
 
-const noteHubApi = axios.create({
-  baseURL: "https://notehub-public.goit.study/api",
-});
-
-noteHubApi.interceptors.request.use((config) => {
-  const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
-
-export interface FetchNotesParams {
-  page: number;
-  perPage: number;
-  search?: string;
-}
-
-export interface NotesResponse {
+export interface FetchNotesHTTPResponse {
   notes: Note[];
   totalPages: number;
 }
 
-export interface CreateNotePayload {
+interface FetchNotesParams {
+  search?: string;
+  page?: number;
+  perPage?: number;
+  tag?: string;
+}
+
+export interface CreateNoteParams {
   title: string;
-  content: string;
-  tag: NoteTag;
+  content?: string;
+  tag: string;
 }
 
-export async function fetchNotes(
-  params: FetchNotesParams,
-): Promise<NotesResponse> {
-  const response: AxiosResponse<NotesResponse> = await noteHubApi.get(
-    "/notes",
-    {
-      params: {
-        page: params.page,
-        perPage: params.perPage,
-        search: params.search || undefined,
-      },
-    },
-  );
+const BASE_URL = "https://notehub-public.goit.study/api/notes";
 
+const TOKEN = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
+
+if (!TOKEN) {
+  if (process.env.NODE_ENV !== "production") {
+    throw new Error("❌ NEXT_PUBLIC_NOTEHUB_TOKEN is not defined in environment variables");
+  } else {
+    console.warn("⚠️ Warning: NoteHub token is missing — requests may fail.");
+  }
+}
+
+const noteServiceClient = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    Authorization: `Bearer ${TOKEN}`,
+  },
+});
+
+
+export async function fetchNotes({ search, page = 1, tag }: FetchNotesParams) {
+  const params: FetchNotesParams = {
+    page,
+    perPage: NOTES_PER_PAGE,
+  };
+
+  if (search) params.search = search;
+  if (tag && tag !== 'All') params.tag = tag;
+
+  const response = await noteServiceClient.get<FetchNotesHTTPResponse>("/", { params });
   return response.data;
 }
 
-export async function createNote(payload: CreateNotePayload): Promise<Note> {
-  const response: AxiosResponse<Note> = await noteHubApi.post(
-    "/notes",
-    payload,
-  );
-
+export async function fetchNoteById(id: number) {
+  const response = await noteServiceClient.get<Note>(`/${id}`);
   return response.data;
 }
 
-export async function deleteNote(noteId: Note["id"]): Promise<Note> {
-  const response: AxiosResponse<Note> = await noteHubApi.delete(
-    `/notes/${noteId}`,
-  );
-
+export async function createNote({ title, content = "", tag }: CreateNoteParams) {
+  const response = await noteServiceClient.post<Note>("/", {
+    title,
+    content,
+    tag,
+  });
   return response.data;
 }
 
-export async function fetchNoteById(noteId: Note["id"]): Promise<Note> {
-  const response: AxiosResponse<Note> = await noteHubApi.get(
-    `/notes/${noteId}`,
-  );
-
+export async function deleteNote(id: number) {
+  const response = await noteServiceClient.delete<Note>(`/${id}`);
   return response.data;
 }
