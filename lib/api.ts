@@ -1,22 +1,11 @@
 import axios from "axios";
-import type { Note } from "@/types/note";
-import { NOTES_PER_PAGE } from "@/lib/constants";
+import type { Note } from "../types/note";
+import { NOTES_PER_PAGE, type FilterTag, type Tag } from "@/lib/constants";
 
 export interface FetchNotesHTTPResponse {
   notes: Note[];
   totalPages: number;
 }
-
-// Допустимі теги API
-export type NoteTag =
-  | "Todo"
-  | "Work"
-  | "Personal"
-  | "Meeting"
-  | "Shopping";
-
-// Для фільтра дозволяємо ще "All"
-export type FilterTag = "All" | NoteTag;
 
 interface FetchNotesParams {
   search?: string;
@@ -28,7 +17,7 @@ interface FetchNotesParams {
 export interface CreateNoteParams {
   title: string;
   content?: string;
-  tag: NoteTag;
+  tag: Tag;
 }
 
 const BASE_URL = "https://notehub-public.goit.study/api/notes";
@@ -41,7 +30,9 @@ if (!TOKEN) {
       "❌ NEXT_PUBLIC_NOTEHUB_TOKEN is not defined in environment variables"
     );
   } else {
-    console.warn("⚠️ Warning: NoteHub token is missing — requests may fail.");
+    console.warn(
+      "⚠️ Warning: NoteHub token is missing — requests may fail."
+    );
   }
 }
 
@@ -51,6 +42,7 @@ const noteServiceClient = axios.create({
     Authorization: `Bearer ${TOKEN}`,
   },
 });
+
 
 export async function fetchNotes({
   search,
@@ -63,20 +55,28 @@ export async function fetchNotes({
   };
 
   if (search) params.search = search;
-  if (tag && tag !== "All") params.tag = tag;
+
+  if (tag && tag !== "All") {
+    params.tag = tag;
+  }
 
   const response = await noteServiceClient.get<FetchNotesHTTPResponse>(
     "/",
-    { params }
+    {
+      params,
+    }
   );
 
   return response.data;
 }
 
+
 export async function fetchNoteById(id: string) {
   const response = await noteServiceClient.get<Note>(`/${id}`);
+
   return response.data;
 }
+
 
 export async function createNote({
   title,
@@ -92,7 +92,9 @@ export async function createNote({
   return response.data;
 }
 
+
 export async function deleteNote(id: string) {
   const response = await noteServiceClient.delete<Note>(`/${id}`);
+
   return response.data;
 }
