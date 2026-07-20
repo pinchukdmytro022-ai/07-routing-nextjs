@@ -4,10 +4,7 @@ import { useEffect, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 
-import {
-  fetchNotes,
-  FetchNotesHTTPResponse,
-} from "@/lib/api";
+import { fetchNotes} from "@/lib/api";
 
 import type { FilterTag } from "@/lib/constants";
 
@@ -23,13 +20,11 @@ import css from "./page.module.css";
 
 
 interface NotesClientProps {
-  initialData?: FetchNotesHTTPResponse;
   tag?: FilterTag;
 }
 
 
 export default function NotesClient({
-  initialData,
   tag,
 }: NotesClientProps) {
 
@@ -69,7 +64,6 @@ export default function NotesClient({
 
     placeholderData: keepPreviousData,
     refetchOnMount: false,
-    initialData,
   });
 
 
@@ -86,16 +80,13 @@ export default function NotesClient({
   return (
     <>
       <div className={css.app}>
-
         <header className={css.toolbar}>
-
           <SearchBox
             value={query}
             onChange={(query: string) =>
               setQuery(query)
             }
           />
-
 
           {isSuccess && data.totalPages > 1 && (
             <Pagination
@@ -107,7 +98,6 @@ export default function NotesClient({
             />
           )}
 
-
           <button
             onClick={handleCreateNote}
             className={css.button}
@@ -117,25 +107,20 @@ export default function NotesClient({
 
         </header>
 
-
         {isModal && (
           <Modal onClose={closeModal}>
             <NoteForm onClose={closeModal} />
           </Modal>
         )}
 
-
         {(isLoading || isFetching) && <Loader />}
 
-
         {isError && <ErrorMessage />}
-
 
         {isSuccess &&
           data?.notes?.length === 0 &&
           <p>No notes found.</p>
         }
-
 
         {data?.notes &&
           data.notes.length > 0 &&
