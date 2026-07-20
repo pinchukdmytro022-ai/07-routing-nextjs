@@ -7,7 +7,9 @@ import { fetchNoteById } from "@/lib/api";
 import Modal from "@/components/Modal/Modal";
 import css from "./NotePreview.module.css";
 
-type NoteDetailsClientProps = { id: string | number };
+type NoteDetailsClientProps = {
+  id: string;
+};
 
 export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
   const router = useRouter();
@@ -17,8 +19,8 @@ export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["note", +id],
-    queryFn: () => fetchNoteById(+id),
+    queryKey: ["note", id],
+    queryFn: () => fetchNoteById(id),
     refetchOnMount: false,
   });
 
@@ -38,7 +40,7 @@ export default function NoteDetailsClient({ id }: NoteDetailsClientProps) {
           </button>
 
           <div className={css.header}>
-            <h2>{note?.title}</h2>
+            <h2>{note.title}</h2>
           </div>
 
           <p className={css.content}>{note.content}</p>
