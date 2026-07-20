@@ -14,7 +14,7 @@ export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteNote(id),
+    mutationFn: (id: number) => deleteNote(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
